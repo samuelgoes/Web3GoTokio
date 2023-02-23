@@ -16,30 +16,32 @@ import (
 
 func main() {
 	// Use Ganache node:
-	/*
-		cl, err := ethclient.Dial("http://127.0.0.1:7545")
-		if err != nil {
-			log.Fatalf("error dialing eth client: %v", err)
-		}
-	*/
 
-	// Use Infura:
-	infura := "https://goerli.infura.io/v3/76273ae5f1af44cabc486caeb2fa28aa"
-	cl, err := ethclient.Dial(infura)
+	cl, err := ethclient.Dial("http://127.0.0.1:7545")
+	if err != nil {
+		log.Fatalf("error dialing eth client: %v", err)
+	}
+
+	/*
+		// Use Infura:
+		infura := "https://goerli.infura.io/v3/76273ae5f1af44cabc486caeb2fa28aa"
+		cl, err := ethclient.Dial(infura)
+
+	*/
 
 	defer cl.Close()
 
-	hexPrivKey := "f713f261307e511dcb0030a6d5c7b4022ae1c8f7deb614ea2f2a1f6b9d8ed738"
+	hexPrivKey := "9a8f2a7f7608fb1509e483a7d0ad150245065ab08964d0a772403e35ec7a9b14"
 	key, err := crypto.HexToECDSA(hexPrivKey)
 	if err != nil {
 		log.Fatalf("Private key is not OK. %v", err)
 	}
 
-	addr := common.HexToAddress("0x227d0f9A88Dd26Fa05e83Ac2008082Ff53A2541d")
+	addr := common.HexToAddress("0xA193e3c5F1817E1c477c3ECEBe1B04E448eDe865")
 	ctx := context.Background()
 
 	// Retrieve a block by number
-	block, err := cl.BlockByNumber(ctx, big.NewInt(37))
+	block, err := cl.BlockByNumber(ctx, big.NewInt(1))
 	if err != nil {
 		log.Printf("error getting block number: %v", err)
 	} else {
@@ -58,7 +60,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("error getting balance: %v", err)
 	}
-
 	if progress != nil {
 		log.Printf("Progress: %v", progress)
 	}
@@ -92,28 +93,30 @@ func main() {
 		log.Fatalf("unable to build new transactor: %v", err)
 	}
 	auth.Nonce = big.NewInt(int64(nonce))
-	auth.Value = big.NewInt(0)      // in wei
-	auth.GasLimit = uint64(3000000) // in units
+	auth.Value = big.NewInt(0)     // in wei
+	auth.GasLimit = uint64(800000) // in units
 	auth.GasPrice = gasPrice
 
-	// Deploy Smart Contract
-	address, txdc, con, err := contracts.DeployContracts(auth, cl)
-	if err != nil {
-		log.Fatalf("unable to deploy smart contract. %v", err)
-	}
-
-	waitForBlock(cl, txdc)
-	log.Printf("Smart Contract desplegado satisfactoriamente. Address: %s", address.Hex())
-
 	/*
-		// Load Smart Contract
-		contractAddresss := common.HexToAddress("0x289411fd5C6E8f8e27321EA30Cb988C4c5585509")
-		con, err := contracts.NewContracts(contractAddresss, cl)
+		// Deploy Smart Contract
+		address, txdc, con, err := contracts.DeployContracts(auth, cl)
 		if err != nil {
-			log.Fatalf("unable to load smart contract")
+			log.Fatalf("unable to deploy smart contract. %v", err)
 		}
-		log.Printf("Smart Contract cargado satisfactoriamente.")
+
+		waitForBlock(cl, txdc)
+		log.Printf("Smart Contract desplegado satisfactoriamente. Address: %s", address.Hex())
+
+
 	*/
+
+	// Load Smart Contract
+	contractAddresss := common.HexToAddress("0x6C4313A5820d62E4edc82aC66e4EC0dCf4f34Cfd")
+	con, err := contracts.NewContracts(contractAddresss, cl)
+	if err != nil {
+		log.Fatalf("unable to load smart contract")
+	}
+	log.Printf("Smart Contract cargado satisfactoriamente.")
 
 	nonce, err = cl.PendingNonceAt(context.Background(), fromAddress)
 	if err != nil {
@@ -121,7 +124,7 @@ func main() {
 	}
 	auth.Nonce = big.NewInt(int64(nonce))
 
-	addr1 := common.HexToAddress("0xAa29b832234876114daf40f07398F1Bc37d3963c")
+	addr1 := common.HexToAddress("0x7D94fAdEfF60D56A5ea3071e9b89c18Eb7180169")
 	amount := big.NewInt(1800000000000)
 
 	tx1, err := con.Transfer(auth, addr1, amount)
@@ -136,7 +139,7 @@ func main() {
 
 	symbol, err := con.Symbol(&bind.CallOpts{})
 	if err != nil {
-		log.Fatalf("unable to call Symbol function. Err: %v", err)
+		log.Printf("unable to call Symbol function. Err: %v", err)
 	}
 	log.Printf("Este es el símbolo del Smart Contract TokioToken: %s", symbol)
 
